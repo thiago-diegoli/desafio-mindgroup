@@ -1,0 +1,47 @@
+{
+  "name": "desafio-mindgroup",
+  "version": "1.0.0",
+  "main": "app.ts",
+  "scripts": {
+    "test": "jest",
+    "start": "node app.ts",
+    "dev": "nodemon app.ts"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/thiago-diegoli/desafio-mindgroup.git"
+  },
+  "keywords": [
+    "React",
+    "Typescript",
+    "Mysql",
+    "Prisma",
+    "NodeJS"
+  ],
+  "author": "Thiago Diegoli",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/thiago-diegoli/desafio-mindgroup/issues"
+  },
+  "homepage": "https://github.com/thiago-diegoli/desafio-mindgroup#readme",
+  "description": "Aplicação desenvolvida como parte do desafio para o estágio na Mind Group",
+  "dependencies": {
+    "@prisma/client": "^5.19.1",
+    "@types/express": "^4.17.21",
+    "@types/node": "^22.5.4",
+    "bcrypt": "^5.1.1",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.21.0",
+    "express-validator": "^7.2.0",
+    "jsonwebtoken": "^9.0.2",
+    "mysql2": "^3.11.2",
+    "prisma": "^5.19.1",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.6.2"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0",
+    "nodemon": "^3.1.4"
+  }
+}
