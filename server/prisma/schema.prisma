@@ -19,4 +19,24 @@ model User {
   email     String @unique
   password  String
   photo     Bytes?
+  tasks     Task[]
+}
+
+model Project {
+  id          Int      @id @default(autoincrement())
+  name        String
+  description String?
+  tasks       Task[]
+}
+
+model Task {
+  id           Int      @id @default(autoincrement())
+  name         String
+  description  String?
+  status       String
+  deliveryDate DateTime?
+  project      Project  @relation(fields: [projectId], references: [id])
+  projectId    Int
+  responsible  User     @relation(fields: [responsibleId], references: [id])
+  responsibleId Int
 }
