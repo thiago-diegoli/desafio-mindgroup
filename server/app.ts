@@ -3,8 +3,8 @@ import bodyParser from 'body-parser';
 import dotenv from 'dotenv';
 import { connectToDatabase } from './utils/database';
 import LoginRoute from './routes/loginRoute';
-// import projectRoutes from './routes/projectRoute';
-// import taskRoutes from './routes/taskRoute';
+import projectRoute from './routes/projectRoute';
+import taskRoute from './routes/taskRoute';
 
 import cors from 'cors';
 
@@ -32,9 +32,8 @@ app.get('/api', (req: Request, res: Response) => {
 });
 
 app.use('/api/logins', LoginRoute);
-// app.use('/api/projects', projectRoutes);
-// app.use('/api/tasks', taskRoutes);
-
+app.use('/api/projects', projectRoute);
+app.use('/api/tasks', taskRoute);
 
 
 const PORT = process.env.PORT || 4000;
