@@ -1,26 +1,25 @@
-import React, { useState, useEffect, useRef } from 'react';
-import AppBar from '@mui/material/AppBar';
+import React, { useState, useEffect } from 'react';
 import Button from '@mui/material/Button';
-import DashboardIcon from '@mui/icons-material/Dashboard';
 import Card from '@mui/material/Card';
 import CardActions from '@mui/material/CardActions';
 import CardContent from '@mui/material/CardContent';
-import CardMedia from '@mui/material/CardMedia';
 import CssBaseline from '@mui/material/CssBaseline';
 import Grid from '@mui/material/Grid';
-import Toolbar from '@mui/material/Toolbar';
 import Typography from '@mui/material/Typography';
 import Container from '@mui/material/Container';
 import { styled } from '@mui/material/styles';
 import Box from '@mui/material/Box';
-import { getAllProjects } from '../services/projectService';
 import Avatar from '@mui/material/Avatar';
 import { blue } from '@mui/material/colors';
-import Menu from '@mui/material/Menu';
-import MenuItem from '@mui/material/MenuItem';
-import LogoutIcon from '@mui/icons-material/ExitToApp';
+import Dialog from '@mui/material/Dialog';
+import DialogActions from '@mui/material/DialogActions';
+import DialogContent from '@mui/material/DialogContent';
+import DialogTitle from '@mui/material/DialogTitle';
+import TextField from '@mui/material/TextField';
 import { useNavigate } from 'react-router-dom';
-import { updateUserPhoto } from '../services/userService';
+import { createProject, getAllProjects } from '../services/projectService';
+import { getUserById } from '../services/userService';
+import Header from '../components/Header';
 
 const HeroContent = styled('div')(({ theme }) => ({
   backgroundColor: theme.palette.background.paper,
@@ -36,40 +35,58 @@ const CardGrid = styled(Container)(({ theme }) => ({
   paddingBottom: theme.spacing(8),
 }));
 
-const CardMediaCustom = styled(CardMedia)({
-  paddingTop: '56.25%',
-});
+const Dashboard: React.FC = () => {
+  interface Project {
+    id: number;
+    name: string;
+    description: string;
+    userId: number;
+  }
 
-export default function Dashboard() {
-  const [projects, setProjects] = useState<any[]>([]);
+  interface User {
+    id: number;
+    name: string;
+    email: string;
+    photo: string | null;
+  }
+
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [users, setUsers] = useState<Record<number, User>>({});
   const [currentPage, setCurrentPage] = useState(1);
   const [userId, setUserId] = useState<number | null>(null);
   const [showMyProjects, setShowMyProjects] = useState(false);
-  const [userPhoto, setUserPhoto] = useState<string | null>(null);
-  const projectsPerPage = 3;
+  const [projectsPerPage] = useState(3);
+  const [openModal, setOpenModal] = useState(false);
+  const [projectName, setProjectName] = useState('');
+  const [projectDescription, setProjectDescription] = useState('');
 
   useEffect(() => {
     const fetchProjects = async () => {
       try {
-        const data = await getAllProjects();
-        setProjects(data);
+        const projectsData: Project[] = await getAllProjects();
+        setProjects(projectsData);
+
+        const userIds = Array.from(new Set(projectsData.map(project => project.userId)));
+
+        const usersData = await Promise.all(userIds.map(id => getUserById(id)));
+
+        const usersById = usersData.reduce((acc: Record<number, User>, user) => {
+          acc[user.id] = user;
+          return acc;
+        }, {});
+
+        setUsers(usersById);
       } catch (error) {
-        console.error('Failed to fetch projects', error);
+        console.error('Erro ao buscar projetos e usuários:', error);
       }
     };
-
     fetchProjects();
   }, []);
 
   useEffect(() => {
     const storedUserId = localStorage.getItem('userId');
-    const storedUserPhoto = localStorage.getItem('userPhoto');
     if (storedUserId) {
       setUserId(Number(storedUserId));
-    }
-    if (storedUserPhoto) {
-      const imageUrl = `data:image/png;base64,${storedUserPhoto}`;
-      setUserPhoto(imageUrl);
     }
   }, []);
 
@@ -92,146 +109,47 @@ export default function Dashboard() {
     setCurrentPage(1);
   };
 
-  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
-  const open = Boolean(anchorEl);
-  const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
-    setAnchorEl(event.currentTarget);
-  };
-  const handleClose = () => {
-    setAnchorEl(null);
-  };
   const navigate = useNavigate();
 
-  const handleLogout = () => {
-    localStorage.removeItem('access_token');
-    localStorage.removeItem('userId');
-    localStorage.removeItem('userPhoto');
-    navigate('/signin');
+  const handleOpenModal = () => {
+    setOpenModal(true);
   };
 
-  const userName = localStorage.getItem('name');
-  const userInitial = userName ? userName.charAt(0).toUpperCase() : '';
+  const handleCloseModal = () => {
+    setOpenModal(false);
+  };
 
-  const fileInputRef = useRef<HTMLInputElement | null>(null);
-
-  const base64ToBlob = (base64: string, contentType = 'image/png'): Blob => {
-    const sliceSize = 512;
-    const byteCharacters = atob(base64);
-    const byteArrays = [];
-  
-    for (let offset = 0; offset < byteCharacters.length; offset += sliceSize) {
-      const slice = byteCharacters.slice(offset, offset + sliceSize);
-  
-      const byteNumbers = new Array(slice.length);
-      for (let i = 0; i < slice.length; i++) {
-        byteNumbers[i] = slice.charCodeAt(i);
+  const handleCreateProject = async () => {
+    if (projectName && projectDescription && userId) {
+      try {
+        await createProject({
+          name: projectName,
+          description: projectDescription,
+        });
+        const data = await getAllProjects();
+        setProjects(data);
+        handleCloseModal();
+        setProjectName('');
+        setProjectDescription('');
+      } catch (error) {
+        console.error('Failed to create project', error);
       }
-  
-      const byteArray = new Uint8Array(byteNumbers);
-      byteArrays.push(byteArray);
     }
-  
-    return new Blob(byteArrays, { type: contentType });
   };
-  
 
-  const handleChangePhoto = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files ? event.target.files[0] : null;
-  
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = async () => {
-        if (typeof reader.result === 'string') {
-          const base64String = reader.result.split(',')[1];
-  
-          if (userId !== null) {
-            try {
-              const response = await updateUserPhoto(userId.toString(), base64String);
-              console.log('Foto atualizada:', response);
-  
-              // Atualizar o localStorage e o estado com o base64 da imagem
-              localStorage.setItem('userPhoto', base64String);
-              const imageUrl = `data:image/png;base64,${base64String}`; // Ajuste o tipo conforme necessário
-              setUserPhoto(imageUrl);
-            } catch (error) {
-              console.error('Erro ao atualizar a foto:', error);
-            }
-          }
-        }
-      };
-  
-      reader.readAsDataURL(file);
-    }
-  };
-  
-  const triggerFileSelect = () => {
-    if (fileInputRef.current) {
-      fileInputRef.current.click();
-    }
+  const handleViewProject = (projectId: number) => {
+    navigate(`/project/${projectId}`);
   };
 
   return (
     <React.Fragment>
       <CssBaseline />
-      <AppBar position="relative">
-        <Toolbar>
-          <DashboardIcon sx={{ marginRight: 2 }} />
-          <Typography variant="h6" color="inherit" noWrap>
-            Dashboard
-          </Typography>
-          <Box sx={{ flexGrow: 1 }} />
-          <Button
-            id="basic-button"
-            aria-controls={open ? 'basic-menu' : undefined}
-            aria-haspopup="true"
-            aria-expanded={open ? 'true' : undefined}
-            onClick={handleClick}
-            sx={{
-              display: 'flex',
-              alignItems: 'center',
-              padding: 2,
-              borderRadius: '4px'
-            }}
-          >
-            <Avatar
-              src={userPhoto || undefined}
-              sx={{
-                bgcolor: userPhoto ? undefined : blue[400],
-                marginRight: 2,
-              }}
-            >
-              {!userPhoto && userInitial}
-            </Avatar>
-            <Typography variant="h6" color="white">
-              {userName || 'Usuário Desconhecido'}
-            </Typography>
-          </Button>
-          <Menu
-            id="basic-menu"
-            anchorEl={anchorEl}
-            open={open}
-            onClose={handleClose}
-            MenuListProps={{
-              'aria-labelledby': 'basic-button',
-            }}
-          >
-            <MenuItem onClick={triggerFileSelect}>
-              Trocar foto
-            </MenuItem>
-            <input
-              type="file"
-              accept="image/*"
-              ref={fileInputRef}
-              style={{ display: 'none' }}
-              onChange={handleChangePhoto}
-            />
-            <MenuItem onClick={handleLogout} sx={{ color: 'red' }}>
-              <LogoutIcon sx={{ marginRight: 1 }} />
-              Sair
-            </MenuItem>
-          </Menu>
-        </Toolbar>
-      </AppBar>
+      <Header
+        userName={localStorage.getItem('name')}
+        userPhoto={localStorage.getItem('userPhoto') ? `data:image/png;base64,${localStorage.getItem('userPhoto')}` : null}
+        userId={userId}
+        setUserPhoto={(photo) => localStorage.setItem('userPhoto', photo ? photo.split(',')[1] : '')}
+      />
       <main>
         <HeroContent>
           <Container maxWidth="sm">
@@ -244,7 +162,7 @@ export default function Dashboard() {
             <HeroButtons>
               <Grid container spacing={2} justifyContent="center">
                 <Grid item>
-                  <Button variant="contained" color="primary">
+                  <Button variant="contained" color="primary" onClick={handleOpenModal}>
                     Adicionar Projeto
                   </Button>
                 </Grid>
@@ -258,8 +176,8 @@ export default function Dashboard() {
           </Container>
         </HeroContent>
         <Container maxWidth="md">
-          <Box sx={{ display: 'flex', alignItems: 'center', marginBottom: 2 }}>
-            <Typography variant="body1" sx={{ marginRight: 1 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+            <Typography variant="body1" sx={{ mr: 1 }}>
               Filtrar meus projetos
             </Typography>
             <input
@@ -273,10 +191,6 @@ export default function Dashboard() {
               {currentProjects.map((project) => (
                 <Grid item key={project.id} xs={12} sm={6} md={4}>
                   <Card sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-                    <CardMediaCustom
-                      image="https://source.unsplash.com/random"
-                      title={project.name}
-                    />
                     <CardContent sx={{ flexGrow: 1 }}>
                       <Typography gutterBottom variant="h5" component="h2">
                         {project.name}
@@ -284,27 +198,41 @@ export default function Dashboard() {
                       <Typography>
                         {project.description}
                       </Typography>
+                      <Box sx={{ display: 'flex', alignItems: 'center', mt: 2 }}>
+                        {users[project.userId] ? (
+                          <>
+                            <Avatar
+                              src={users[project.userId]?.photo ? `data:image/png;base64,${users[project.userId].photo}` : undefined}
+                              sx={{ bgcolor: users[project.userId]?.photo ? undefined : blue[400], mr: 2 }}
+                            >
+                              {!users[project.userId]?.photo && users[project.userId]?.name.charAt(0).toUpperCase()}
+                            </Avatar>
+                            <Typography variant="body1">
+                              {users[project.userId]?.name}
+                            </Typography>
+                          </>
+                        ) : (
+                          <Typography variant="body1">Carregando usuário...</Typography>
+                        )}
+                      </Box>
                     </CardContent>
                     <CardActions>
-                      <Button size="small" color="primary">
+                      <Button size="small" color="primary" onClick={() => handleViewProject(project.id)}>
                         Ver
-                      </Button>
-                      <Button size="small" color="primary">
-                        Editar
                       </Button>
                     </CardActions>
                   </Card>
                 </Grid>
               ))}
             </Grid>
-            <Box sx={{ display: 'flex', justifyContent: 'center', marginTop: 2 }}>
+            <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
               {pageNumbers.map(number => (
                 <Button
                   key={number}
                   onClick={() => handlePageChange(number)}
                   variant={currentPage === number ? 'contained' : 'outlined'}
                   color="primary"
-                  sx={{ margin: 1 }}
+                  sx={{ m: 1 }}
                 >
                   {number}
                 </Button>
@@ -312,7 +240,38 @@ export default function Dashboard() {
             </Box>
           </CardGrid>
         </Container>
+
+        <Dialog open={openModal} onClose={handleCloseModal}>
+          <DialogTitle>Criar Novo Projeto</DialogTitle>
+          <DialogContent>
+            <TextField
+              autoFocus
+              margin="dense"
+              label="Nome do Projeto"
+              type="text"
+              fullWidth
+              variant="outlined"
+              value={projectName}
+              onChange={(e) => setProjectName(e.target.value)}
+            />
+            <TextField
+              margin="dense"
+              label="Descrição"
+              type="text"
+              fullWidth
+              variant="outlined"
+              value={projectDescription}
+              onChange={(e) => setProjectDescription(e.target.value)}
+            />
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={handleCloseModal}>Cancelar</Button>
+            <Button onClick={handleCreateProject}>Cadastrar</Button>
+          </DialogActions>
+        </Dialog>
       </main>
     </React.Fragment>
   );
-}
+};
+
+export default Dashboard;
