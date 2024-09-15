@@ -40,6 +40,6 @@ model Task {
   deliveryDate DateTime?
   project      Project  @relation(fields: [projectId], references: [id])
   projectId    Int
-  responsible  User     @relation(fields: [responsibleId], references: [id])
-  responsibleId Int
+  responsible  User?    @relation(fields: [responsibleId], references: [id])
+  responsibleId Int?
 }
