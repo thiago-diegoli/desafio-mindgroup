@@ -61,7 +61,7 @@ export const login = async (req: Request, res: Response): Promise<Response> => {
 
     const token = jwt.sign(
       { userId: user.id },
-      process.env.SECRET_KEY!,
+      process.env.JWT_SECRET!,
       { expiresIn: process.env.EXPIRES_IN }
     );
 
@@ -77,7 +77,7 @@ export const login = async (req: Request, res: Response): Promise<Response> => {
   }
 };
 
-export const updateUserPhoto = async (req: AuthenticatedRequest, res: Response): Promise<Response> => {
+export const updateUserPhoto = async (req: Request, res: Response): Promise<Response> => {
   try {
     const { photoBase64 } = req.body;
 
@@ -85,10 +85,7 @@ export const updateUserPhoto = async (req: AuthenticatedRequest, res: Response):
       return res.status(400).json({ message: 'Nenhuma imagem fornecida' });
     }
 
-    const userId = req.user?.id;
-    if (!userId) {
-      return res.status(401).json({ message: 'Usuário não autenticado' });
-    }
+    const userId = req.params.userId;
 
     const photoBuffer = Buffer.from(photoBase64, 'base64');
 

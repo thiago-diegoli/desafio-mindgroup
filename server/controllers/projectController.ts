@@ -51,6 +51,31 @@ export const getAllProjectsById = async (req: Request, res: Response) => {
   }
 };
 
+export const getProjectById = async (req: Request, res: Response) => {
+  try {
+    const { projectId } = req.params;
+
+    if (!projectId) {
+      return res.status(400).json({ message: 'O ID do projeto é necessário' });
+    }
+
+    const project = await prisma.project.findUnique({
+      where: { id: Number(projectId) },
+      include: {
+        user: true,
+      },
+    });
+
+    if (!project) {
+      return res.status(404).json({ message: 'Projeto não encontrado' });
+    }
+
+    res.status(200).json(project);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 export const updateProject = async (req: AuthenticatedRequest, res: Response) => {
   try {
     const { projectId } = req.params;

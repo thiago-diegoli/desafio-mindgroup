@@ -66,6 +66,23 @@ export const getAllProjectsById = async (userId: number) => {
   }
 };
 
+export const getProjectById = async (projectId: number) => {
+  try {
+    const response = await axios.get(`${API_URL}/${projectId}`, {
+      headers: getAuthHeaders(),
+    });
+    return response.data;
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      console.error('Erro ao obter o projeto pelo ID:', error.message);
+      throw new Error(error.response?.data?.message || error.message || 'Erro desconhecido');
+    } else {
+      console.error('Erro desconhecido ao obter o projeto pelo ID:', error);
+      throw new Error('Erro desconhecido');
+    }
+  }
+};
+
 export const updateProject = async (projectId: number, updateData: { name?: string; description?: string }) => {
   try {
     const response = await axios.put(`${API_URL}/update/${projectId}`, updateData, {
