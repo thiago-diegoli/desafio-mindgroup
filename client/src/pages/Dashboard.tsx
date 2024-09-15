@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import AppBar from '@mui/material/AppBar';
 import Button from '@mui/material/Button';
 import DashboardIcon from '@mui/icons-material/Dashboard';
@@ -15,11 +15,12 @@ import { styled } from '@mui/material/styles';
 import Box from '@mui/material/Box';
 import { getAllProjects } from '../services/projectService';
 import Avatar from '@mui/material/Avatar';
-import { blue, red } from '@mui/material/colors';
+import { blue } from '@mui/material/colors';
 import Menu from '@mui/material/Menu';
 import MenuItem from '@mui/material/MenuItem';
 import LogoutIcon from '@mui/icons-material/ExitToApp';
 import { useNavigate } from 'react-router-dom';
+import { updateUserPhoto } from '../services/userService';
 
 const HeroContent = styled('div')(({ theme }) => ({
   backgroundColor: theme.palette.background.paper,
@@ -44,6 +45,7 @@ export default function Dashboard() {
   const [currentPage, setCurrentPage] = useState(1);
   const [userId, setUserId] = useState<number | null>(null);
   const [showMyProjects, setShowMyProjects] = useState(false);
+  const [userPhoto, setUserPhoto] = useState<string | null>(null);
   const projectsPerPage = 3;
 
   useEffect(() => {
@@ -61,8 +63,12 @@ export default function Dashboard() {
 
   useEffect(() => {
     const storedUserId = localStorage.getItem('userId');
+    const storedUserPhoto = localStorage.getItem('userPhoto');
     if (storedUserId) {
       setUserId(Number(storedUserId));
+    }
+    if (storedUserPhoto) {
+      setUserPhoto(storedUserPhoto);
     }
   }, []);
 
@@ -85,7 +91,7 @@ export default function Dashboard() {
     setCurrentPage(1);
   };
 
-  const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const open = Boolean(anchorEl);
   const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
     setAnchorEl(event.currentTarget);
@@ -98,14 +104,77 @@ export default function Dashboard() {
   const handleLogout = () => {
     localStorage.removeItem('access_token');
     localStorage.removeItem('userId');
-    localStorage.removeItem('teste');
     localStorage.removeItem('userPhoto');
     navigate('/signin');
   };
-  const userName = localStorage.getItem('name');
-  const userPhoto = localStorage.getItem('userPhoto');
 
+  const userName = localStorage.getItem('name');
   const userInitial = userName ? userName.charAt(0).toUpperCase() : '';
+
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+
+  const base64ToBlob = (base64: string, contentType = 'image/png'): Blob => {
+    const sliceSize = 512;
+    const byteCharacters = atob(base64);
+    const byteArrays = [];
+  
+    for (let offset = 0; offset < byteCharacters.length; offset += sliceSize) {
+      const slice = byteCharacters.slice(offset, offset + sliceSize);
+  
+      const byteNumbers = new Array(slice.length);
+      for (let i = 0; i < slice.length; i++) {
+        byteNumbers[i] = slice.charCodeAt(i);
+      }
+  
+      const byteArray = new Uint8Array(byteNumbers);
+      byteArrays.push(byteArray);
+    }
+  
+    return new Blob(byteArrays, { type: contentType });
+  };
+  
+
+  const handleChangePhoto = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files ? event.target.files[0] : null;
+  
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = async () => {
+        if (typeof reader.result === 'string') {
+          const base64String = reader.result.split(',')[1];
+  
+          if (userId !== null) {
+            try {
+              const response = await updateUserPhoto(userId.toString(), base64String);
+  
+              if (response.photo) {
+                const blob = base64ToBlob(response.photo);
+                const imageUrl = URL.createObjectURL(blob);
+  
+                localStorage.setItem('userPhoto', imageUrl);
+                setUserPhoto(imageUrl);
+              } else {
+                console.error('A URL da foto não foi retornada.');
+              }
+            } catch (error) {
+              console.error('Erro ao atualizar a foto:', error);
+            }
+          }
+        }
+      };
+  
+      reader.readAsDataURL(file);
+    }
+  };
+  
+  
+  
+
+  const triggerFileSelect = () => {
+    if (fileInputRef.current) {
+      fileInputRef.current.click();
+    }
+  };
 
   return (
     <React.Fragment>
@@ -130,34 +199,43 @@ export default function Dashboard() {
               borderRadius: '4px'
             }}
           >
-          <Avatar
-            src={userPhoto || undefined}
-            sx={{
-              bgcolor: userPhoto ? undefined : blue[400],
-              marginRight: 2,
+            <Avatar
+              src={userPhoto || undefined}
+              sx={{
+                bgcolor: userPhoto ? undefined : blue[400],
+                marginRight: 2,
+              }}
+            >
+              {!userPhoto && userInitial}
+            </Avatar>
+            <Typography variant="h6" color="white">
+              {userName || 'Usuário Desconhecido'}
+            </Typography>
+          </Button>
+          <Menu
+            id="basic-menu"
+            anchorEl={anchorEl}
+            open={open}
+            onClose={handleClose}
+            MenuListProps={{
+              'aria-labelledby': 'basic-button',
             }}
           >
-            {!userPhoto && userInitial}
-          </Avatar>
-          <Typography variant="h6" color="white">
-            {userName || 'Usuário Desconhecido'}
-          </Typography>
-        </Button>
-        <Menu
-          id="basic-menu"
-          anchorEl={anchorEl}
-          open={open}
-          onClose={handleClose}
-          MenuListProps={{
-            'aria-labelledby': 'basic-button',
-          }}
-        >
-          <MenuItem onClick={handleClose}>Trocar foto</MenuItem>
-          <MenuItem onClick={handleLogout} sx={{ color: 'red' }}>
-            <LogoutIcon sx={{marginRight: 1}}/>
-            Sair
-          </MenuItem>
-        </Menu>
+            <MenuItem onClick={triggerFileSelect}>
+              Trocar foto
+            </MenuItem>
+            <input
+              type="file"
+              accept="image/*"
+              ref={fileInputRef}
+              style={{ display: 'none' }}
+              onChange={handleChangePhoto}
+            />
+            <MenuItem onClick={handleLogout} sx={{ color: 'red' }}>
+              <LogoutIcon sx={{ marginRight: 1 }} />
+              Sair
+            </MenuItem>
+          </Menu>
         </Toolbar>
       </AppBar>
       <main>

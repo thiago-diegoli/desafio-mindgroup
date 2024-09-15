@@ -1,10 +1,11 @@
 import express from 'express';
-import { register, login } from '../controllers/loginController';
+import { register, login, updateUserPhoto } from '../controllers/loginController';
 import { registerValidator, loginValidator } from '../validators/loginValidator';
 
 const router = express.Router();
 
 router.post('/register', registerValidator, register);
 router.post('/', loginValidator, login);
+router.put('/users/:userId/photo', updateUserPhoto);
 
 export default router;

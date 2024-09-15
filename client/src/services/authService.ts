@@ -31,7 +31,7 @@ export const login = async (credentials: {
     localStorage.setItem('userId', userId);
     localStorage.setItem('name', name);
     if (photo) {
-      localStorage.setItem('photo', photo);
+      localStorage.setItem('userPhoto', photo);
     }
 
     return response.data;
