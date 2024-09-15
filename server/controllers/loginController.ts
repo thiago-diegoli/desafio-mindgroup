@@ -109,10 +109,10 @@ export const updateUserPhoto = async (req: AuthenticatedRequest, res: Response):
 
 export const getUserById = async (req: Request, res: Response): Promise<Response> => {
   try {
-    const { id } = req.params;
-
+    const { userId } = req.params;
+    const id = Number(userId);
     const user = await prisma.user.findUnique({
-      where: { id: Number(id) },
+      where: { id: id },
     });
 
     if (!user) {
@@ -130,3 +130,4 @@ export const getUserById = async (req: Request, res: Response): Promise<Response
     return res.status(500).json({ message: `${err.message} - Erro no servidor` });
   }
 };
+
