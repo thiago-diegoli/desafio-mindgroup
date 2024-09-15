@@ -80,7 +80,7 @@ export const updateProject = async (req: AuthenticatedRequest, res: Response) =>
   try {
     const { projectId } = req.params;
     const { name, description } = req.body;
-    const userId = req.user?.id;
+    const userId = req.user?.userId;
 
     if (!userId) {
       return res.status(403).json({ message: 'Você não tem permissão para editar este projeto' });
@@ -114,11 +114,11 @@ export const updateProject = async (req: AuthenticatedRequest, res: Response) =>
 
 export const deleteProject = async (req: AuthenticatedRequest, res: Response) => {
   try {
-    const { projectId } = req.params;
-    const userId = req.user.id;
+    const { id } = req.params;
+    const userId = req.user.userId;
 
     const project = await prisma.project.findUnique({
-      where: { id: Number(projectId) },
+      where: { id: Number(id) },
     });
 
     if (!project) {
@@ -130,7 +130,7 @@ export const deleteProject = async (req: AuthenticatedRequest, res: Response) =>
     }
 
     await prisma.project.delete({
-      where: { id: Number(projectId) },
+      where: { id: Number(id) },
     });
 
     res.status(200).json({ message: 'Projeto deletado com sucesso' });

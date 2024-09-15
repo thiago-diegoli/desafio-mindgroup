@@ -122,7 +122,7 @@ const Dashboard: React.FC = () => {
   const handleCreateProject = async () => {
     if (projectName && projectDescription && userId) {
       try {
-        await createProject({
+        const newProject = await createProject({
           name: projectName,
           description: projectDescription,
         });
@@ -131,6 +131,7 @@ const Dashboard: React.FC = () => {
         handleCloseModal();
         setProjectName('');
         setProjectDescription('');
+        navigate(`/project/${newProject.id}`);
       } catch (error) {
         console.error('Failed to create project', error);
       }

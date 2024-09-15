@@ -10,8 +10,8 @@ export const authenticate = (req: AuthenticatedRequest, res: Response, next: Nex
   }
 
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET as string) as { id: number };
-    req.user = { id: decoded.id };
+    const decoded = jwt.verify(token, process.env.JWT_SECRET as string) as { userId: number };
+    req.user = { userId: decoded.userId };
     next();
   } catch (error) {
     res.status(401).json({ message: 'Token inválido' });

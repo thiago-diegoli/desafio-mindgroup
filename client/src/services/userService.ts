@@ -38,6 +38,20 @@ export const updateUserPhoto = async (userId: string, base64String: string) => {
 };
 
 export const getUserById = async (userId: number): Promise<User> => {
-  const response = await axios.get<User>(`${API_URL}/logins/users/${userId}`);
+  const response = await axios.get<User>(`${API_URL}/logins/users/${userId}`, {
+    headers: getAuthHeaders(),
+  });
   return response.data;
+};
+
+export const getAllUsers = async () => {
+  try {
+    const response = await axios.get(`${API_URL}/logins/all/users/`, {
+      headers: getAuthHeaders(),
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Erro ao buscar usuários:', error);
+    throw error;
+  }
 };
