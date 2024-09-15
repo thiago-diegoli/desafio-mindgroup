@@ -102,7 +102,7 @@ export const updateProject = async (projectId: number, updateData: { name?: stri
 
 export const deleteProject = async (projectId: number) => {
   try {
-    const response = await axios.delete(`${API_URL}/delete/${projectId}`, {
+    const response = await axios.delete(`${API_URL}/${projectId}`, {
       headers: getAuthHeaders(),
     });
     return response.data;

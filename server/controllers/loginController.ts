@@ -106,10 +106,10 @@ export const updateUserPhoto = async (req: Request, res: Response): Promise<Resp
 
 export const getUserById = async (req: Request, res: Response): Promise<Response> => {
   try {
-    const { userId } = req.params;
-    const id = Number(userId);
+    const { id } = req.params;
+    const userId = Number(id);
     const user = await prisma.user.findUnique({
-      where: { id: id },
+      where: { id: userId },
     });
 
     if (!user) {
@@ -128,3 +128,18 @@ export const getUserById = async (req: Request, res: Response): Promise<Response
   }
 };
 
+export const getAllUsers = async (req: Request, res: Response): Promise<Response> => {
+  try {
+    const users = await prisma.user.findMany({
+      select: {
+        id: true,
+        name: true
+      },
+    });
+
+    return res.status(200).json(users);
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ message: 'Erro ao buscar usuários' });
+  }
+};

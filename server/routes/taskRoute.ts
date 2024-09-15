@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { createTask, getAllTasks, assignTaskOwner, updateTaskStatus, deleteTask } from '../controllers/taskController';
+import { createTask, getAllTasks, getTasksByProject, getTasksByUser, updateTaskStatus, deleteTask } from '../controllers/taskController';
 import { authenticate } from '../middleware/auth';
 
 const router = Router();
@@ -9,7 +9,8 @@ router.use(authenticate);
 
 router.post('/create', createTask);
 router.get('/', getAllTasks);
-router.patch('/assign', assignTaskOwner);
+router.get('/project/:id', getTasksByProject);
+router.get('/user/:id', getTasksByUser);
 router.patch('/status', updateTaskStatus);
 router.delete('/:taskId', deleteTask);
 

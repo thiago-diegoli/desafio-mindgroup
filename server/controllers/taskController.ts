@@ -4,16 +4,20 @@ import { AuthenticatedRequest } from '../types';
 
 export const createTask = async (req: Request, res: Response) => {
   try {
-    const { name, description, status, deliveryDate, projectId } = req.body;
-
+    const { name, description, deliveryDate, projectId, responsibleId } = req.body;
+    const deliveryDateISO = new Date(deliveryDate).toISOString();
+    
     const task = await prisma.task.create({
       data: {
         name,
         description,
-        status,
-        deliveryDate,
+        status: 'pendente',
+        deliveryDate: deliveryDateISO,
         project: {
           connect: { id: projectId },
+        },
+        responsible: {
+          connect: { id: responsibleId },
         },
       },
     });
@@ -38,24 +42,45 @@ export const getAllTasks = async (req: Request, res: Response) => {
   }
 };
 
-export const assignTaskOwner = async (req: Request, res: Response) => {
+export const getTasksByProject = async (req: Request, res: Response) => {
   try {
-    const { taskId, userId } = req.body;
+    const { id } = req.params;
 
-    const task = await prisma.task.findUnique({
-      where: { id: Number(taskId) },
+    const tasks = await prisma.task.findMany({
+      where: { projectId: Number(id) },
+      include: {
+        project: true,
+        responsible: true,
+      },
     });
 
-    if (task.responsibleId) {
-      return res.status(400).json({ message: 'Esta tarefa já possui um responsável.' });
+    if (tasks.length === 0) {
+      return res.status(404).json({ message: 'Nenhuma tarefa encontrada para este projeto.' });
     }
 
-    const updatedTask = await prisma.task.update({
-      where: { id: Number(taskId) },
-      data: { responsibleId: Number(userId) },
+    res.status(200).json(tasks);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+export const getTasksByUser = async (req: Request, res: Response) => {
+  try {
+    const { userId } = req.params;
+
+    const tasks = await prisma.task.findMany({
+      where: { responsibleId: Number(userId) },
+      include: {
+        project: true,
+        responsible: true,
+      },
     });
 
-    res.status(200).json(updatedTask);
+    if (tasks.length === 0) {
+      return res.status(404).json({ message: 'Nenhuma tarefa encontrada para este usuário.' });
+    }
+
+    res.status(200).json(tasks);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -76,11 +101,10 @@ export const updateTaskStatus = async (req: Request, res: Response) => {
   }
 };
 
-
 export const deleteTask = async (req: AuthenticatedRequest, res: Response) => {
   try {
     const { taskId } = req.params;
-    const userId = req.user?.id;
+    const userId = req.user?.userId;
 
     const task = await prisma.task.findUnique({
       where: { id: Number(taskId) },
@@ -88,7 +112,7 @@ export const deleteTask = async (req: AuthenticatedRequest, res: Response) => {
     });
 
     if (task.project.userId !== userId) {
-      return res.status(403).json({ message: 'Você não tem permissão para deletar esta tarefa.' });
+      return res.status(403).json({ message: `Você não tem permissão para deletar esta tarefa. ${task.project.userId} ---- ${userId} `});
     }
 
     await prisma.task.delete({ where: { id: Number(taskId) } });
