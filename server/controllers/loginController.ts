@@ -3,6 +3,7 @@ import { validationResult } from 'express-validator';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import { PrismaClient } from '@prisma/client';
+import { AuthenticatedRequest } from '../types';
 
 const prisma = new PrismaClient();
 
@@ -76,7 +77,7 @@ export const login = async (req: Request, res: Response): Promise<Response> => {
   }
 };
 
-export const updateUserPhoto = async (req: Request, res: Response): Promise<Response> => {
+export const updateUserPhoto = async (req: AuthenticatedRequest, res: Response): Promise<Response> => {
   try {
     const { photoBase64 } = req.body;
 
@@ -84,7 +85,10 @@ export const updateUserPhoto = async (req: Request, res: Response): Promise<Resp
       return res.status(400).json({ message: 'Nenhuma imagem fornecida' });
     }
 
-    const userId = req.params.userId;
+    const userId = req.user?.id;
+    if (!userId) {
+      return res.status(401).json({ message: 'Usuário não autenticado' });
+    }
 
     const photoBuffer = Buffer.from(photoBase64, 'base64');
 
@@ -96,6 +100,30 @@ export const updateUserPhoto = async (req: Request, res: Response): Promise<Resp
     return res.status(200).json({
       ...updatedUser,
       photo: photoBuffer.toString('base64'),
+    });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ message: `${err.message} - Erro no servidor` });
+  }
+};
+
+export const getUserById = async (req: Request, res: Response): Promise<Response> => {
+  try {
+    const { id } = req.params;
+
+    const user = await prisma.user.findUnique({
+      where: { id: Number(id) },
+    });
+
+    if (!user) {
+      return res.status(404).json({ message: 'Usuário não encontrado' });
+    }
+
+    return res.status(200).json({
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      photo: user.photo ? user.photo.toString('base64') : null,
     });
   } catch (err) {
     console.error(err);
