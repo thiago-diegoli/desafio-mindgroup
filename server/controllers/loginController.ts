@@ -58,7 +58,6 @@ export const login = async (req: Request, res: Response): Promise<Response> => {
       return res.status(403).json({ message: 'Invalid password' });
     }
 
-    // Generate JWT token
     const token = jwt.sign(
       { userId: user.id },
       process.env.SECRET_KEY!,
@@ -67,6 +66,8 @@ export const login = async (req: Request, res: Response): Promise<Response> => {
 
     return res.status(200).json({
       access_token: token,
+      userId: user.id,
+      name: user.name,
       photo: user.photo ? user.photo.toString('base64') : null, 
     });
   } catch (err) {
