@@ -4,6 +4,7 @@ import SignIn from './pages/SignIn';
 import SignUp from './pages/SignUp';
 import Dashboard from './pages/Dashboard';
 import ProjectDetails from './pages/ProjectDetails';
+import UserTasks from './pages/UserTasks';
 
 const ProtectedRoute: React.FC = () => {
   const token = localStorage.getItem('access_token');
@@ -37,6 +38,7 @@ const App: React.FC = () => {
         <Route element={<ProtectedRoute />}>
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/project/:id" element={<ProjectDetails />} />
+          <Route path="/tasks" element={<UserTasks />} />
         </Route>
 
         <Route path="*" element={<Navigate to="/" />} />

@@ -23,6 +23,18 @@ export const getTaskByProject = async (projectId: number) => {
   }
 }
 
+export const getTaskByUser = async (userId: number) => {
+  try {
+    const response = await axios.get(`${API_URL}/tasks/user/${userId}`, {
+      headers: getAuthHeaders(),
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Erro ao buscar tarefas do usuário:', error);
+    throw error;
+  }
+}
+
 export const createTask = async (taskData: {
     name: string;
     description: string;
