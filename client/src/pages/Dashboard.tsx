@@ -142,6 +142,10 @@ const Dashboard: React.FC = () => {
     navigate(`/project/${projectId}`);
   };
 
+  const handleViewTasks = () => {
+    navigate('/tasks');
+  };
+
   return (
     <React.Fragment>
       <CssBaseline />
@@ -168,7 +172,7 @@ const Dashboard: React.FC = () => {
                   </Button>
                 </Grid>
                 <Grid item>
-                  <Button variant="outlined" color="primary">
+                  <Button variant="outlined" color="primary" onClick={handleViewTasks}>
                     Ver Tarefas
                   </Button>
                 </Grid>

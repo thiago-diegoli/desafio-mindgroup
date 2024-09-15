@@ -66,10 +66,10 @@ export const getTasksByProject = async (req: Request, res: Response) => {
 
 export const getTasksByUser = async (req: Request, res: Response) => {
   try {
-    const { userId } = req.params;
+    const { id } = req.params;
 
     const tasks = await prisma.task.findMany({
-      where: { responsibleId: Number(userId) },
+      where: { responsibleId: Number(id) },
       include: {
         project: true,
         responsible: true,
