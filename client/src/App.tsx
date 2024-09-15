@@ -1,12 +1,14 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { BrowserRouter as Router, Route, Routes, Navigate, Outlet } from 'react-router-dom';
 import SignIn from './pages/SignIn';
 import SignUp from './pages/SignUp';
 import Dashboard from './pages/Dashboard';
 import ProjectDetails from './pages/ProjectDetails';
 
-const ProtectedRoute: React.FC<{ isAuthenticated: boolean }> = ({ isAuthenticated }) => {
-  if (!isAuthenticated) {
+const ProtectedRoute: React.FC = () => {
+  const token = localStorage.getItem('access_token');
+
+  if (!token) {
     return <Navigate to="/signin" />;
   }
 
@@ -14,16 +16,25 @@ const ProtectedRoute: React.FC<{ isAuthenticated: boolean }> = ({ isAuthenticate
 };
 
 const App: React.FC = () => {
-  const isAuthenticated = Boolean(localStorage.getItem('access_token'));
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
+
+  const checkAuthentication = () => {
+    const token = localStorage.getItem('access_token');
+    setIsAuthenticated(Boolean(token));
+  };
+
+  useEffect(() => {
+    checkAuthentication();
+  }, []);
 
   return (
     <Router>
       <Routes>
         <Route path="/" element={<Navigate to="/signin" />} />
-        <Route path="/signin" element={<SignIn />} />
+        <Route path="/signin" element={<SignIn onLogin={checkAuthentication} />} />
         <Route path="/signup" element={<SignUp />} />
 
-        <Route element={<ProtectedRoute isAuthenticated={isAuthenticated} />}>
+        <Route element={<ProtectedRoute />}>
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/projects/:id" element={<ProjectDetails />} />
         </Route>
@@ -32,6 +43,6 @@ const App: React.FC = () => {
       </Routes>
     </Router>
   );
-};
+}
 
 export default App;
