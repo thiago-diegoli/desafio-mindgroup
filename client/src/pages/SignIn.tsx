@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Avatar from '@mui/material/Avatar';
 import Button from '@mui/material/Button';
 import CssBaseline from '@mui/material/CssBaseline';
@@ -10,7 +11,7 @@ import LoginIcon from '@mui/icons-material/Login';
 import Typography from '@mui/material/Typography';
 import Container from '@mui/material/Container';
 import { styled } from '@mui/material/styles';
-import { Link as RouterLink, useNavigate } from 'react-router-dom';
+import { Link as RouterLink } from 'react-router-dom';
 import { login } from '../services/authService';
 
 const CenteredBox = styled(Box)(({ theme }) => ({
@@ -31,7 +32,11 @@ const SubmitButton = styled(Button)(({ theme }) => ({
   margin: theme.spacing(3, 0, 2),
 }));
 
-const SignIn: React.FC = () => {
+interface SignInProps {
+  onLogin: () => void;
+}
+
+const SignIn: React.FC<SignInProps> = ({ onLogin }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
@@ -42,7 +47,10 @@ const SignIn: React.FC = () => {
     try {
       const data = await login({ email, password });
       console.log(data);
-      navigate('/dashboard');
+
+      onLogin();
+
+      navigate('/dashboard'); 
     } catch (err) {
       if (err instanceof Error) {
         setError(err.message);
