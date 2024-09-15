@@ -68,7 +68,8 @@ export default function Dashboard() {
       setUserId(Number(storedUserId));
     }
     if (storedUserPhoto) {
-      setUserPhoto(storedUserPhoto);
+      const imageUrl = `data:image/png;base64,${storedUserPhoto}`;
+      setUserPhoto(imageUrl);
     }
   }, []);
 
@@ -146,16 +147,12 @@ export default function Dashboard() {
           if (userId !== null) {
             try {
               const response = await updateUserPhoto(userId.toString(), base64String);
+              console.log('Foto atualizada:', response);
   
-              if (response.photo) {
-                const blob = base64ToBlob(response.photo);
-                const imageUrl = URL.createObjectURL(blob);
-  
-                localStorage.setItem('userPhoto', imageUrl);
-                setUserPhoto(imageUrl);
-              } else {
-                console.error('A URL da foto não foi retornada.');
-              }
+              // Atualizar o localStorage e o estado com o base64 da imagem
+              localStorage.setItem('userPhoto', base64String);
+              const imageUrl = `data:image/png;base64,${base64String}`; // Ajuste o tipo conforme necessário
+              setUserPhoto(imageUrl);
             } catch (error) {
               console.error('Erro ao atualizar a foto:', error);
             }
@@ -167,9 +164,6 @@ export default function Dashboard() {
     }
   };
   
-  
-  
-
   const triggerFileSelect = () => {
     if (fileInputRef.current) {
       fileInputRef.current.click();
