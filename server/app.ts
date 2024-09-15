@@ -2,7 +2,7 @@ import express, { Request, Response } from 'express';
 import bodyParser from 'body-parser';
 import dotenv from 'dotenv';
 import { connectToDatabase } from './utils/database';
-import LoginRoute from './routes/loginRoute';
+import loginRoute from './routes/loginRoute';
 import projectRoute from './routes/projectRoute';
 import taskRoute from './routes/taskRoute';
 
@@ -31,7 +31,7 @@ app.get('/api', (req: Request, res: Response) => {
   });
 });
 
-app.use('/api/logins', LoginRoute);
+app.use('/api/logins', loginRoute);
 app.use('/api/projects', projectRoute);
 app.use('/api/tasks', taskRoute);
 

@@ -25,6 +25,15 @@ export const login = async (credentials: {
 }) => {
   try {
     const response = await axios.post(`${API_URL}/logins`, credentials);
+    const { access_token, userId, name, photo } = response.data;
+
+    localStorage.setItem('access_token', access_token);
+    localStorage.setItem('userId', userId);
+    localStorage.setItem('name', name);
+    if (photo) {
+      localStorage.setItem('userPhoto', photo);
+    }
+
     return response.data;
   } catch (error) {
     if (axios.isAxiosError(error)) {
