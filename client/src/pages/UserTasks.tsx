@@ -36,7 +36,7 @@ const UserTasks: React.FC = () => {
         const currentUserId = Number(localStorage.getItem('userId'));
         setUserId(currentUserId);
         const tasksData = await getTaskByUser(currentUserId);
-        setTasks(tasksData);
+        setTasks(Array.isArray(tasksData) ? tasksData : []);
       } catch (error) {
         console.error('Erro ao buscar tarefas do usuário:', error);
       }
@@ -78,7 +78,7 @@ const UserTasks: React.FC = () => {
     navigate(`/project/${projectId}`);
   };
 
-  const paginatedTasks = tasks.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
+  const paginatedTasks = Array.isArray(tasks) ? tasks.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage) : [];
 
   return (
     <Container

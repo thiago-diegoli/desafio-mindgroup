@@ -33,3 +33,14 @@ export const registerValidator = [
     .optional()
     .isBase64().withMessage('A foto deve estar no formato base64')
 ];
+
+export const updateUserPhotoValidator = [
+  check('photoBase64')
+    .notEmpty().withMessage('A foto é obrigatória')
+    .isBase64().withMessage('A foto deve estar no formato base64')
+];
+
+export const getUserByIdValidator = [
+  check('id')
+    .isInt({ gt: 0 }).withMessage('ID deve ser um número inteiro positivo')
+];

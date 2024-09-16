@@ -60,7 +60,11 @@ const Header: React.FC<HeaderProps> = ({ userName, userPhoto, userId, setUserPho
               const imageUrl = `data:image/png;base64,${base64String}`;
               setUserPhoto(imageUrl);
             } catch (error) {
-              console.error('Erro ao atualizar a foto:', error);
+              if (error instanceof Error && error.message.includes('413')) {
+                alert('Imagem muito grande!');
+              } else {
+                console.error('Erro ao atualizar a foto:', error);
+              }
             }
           }
         }

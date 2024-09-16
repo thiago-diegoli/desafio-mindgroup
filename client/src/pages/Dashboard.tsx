@@ -31,9 +31,20 @@ const HeroButtons = styled('div')(({ theme }) => ({
 }));
 
 const CardGrid = styled(Container)(({ theme }) => ({
-  paddingTop: theme.spacing(8),
+  paddingTop: theme.spacing(4),
   paddingBottom: theme.spacing(8),
 }));
+
+const ProjectCard = styled(Card)({
+  display: 'flex',
+  flexDirection: 'column',
+  height: '33vh',
+});
+
+const ProjectCardContent = styled(CardContent)({
+  flexGrow: 1,
+  overflow: 'hidden',
+});
 
 const Dashboard: React.FC = () => {
   interface Project {
@@ -148,123 +159,130 @@ const Dashboard: React.FC = () => {
 
   return (
     <React.Fragment>
-      <CssBaseline />
-      <Header
-        userName={localStorage.getItem('name')}
-        userPhoto={localStorage.getItem('userPhoto') ? `data:image/png;base64,${localStorage.getItem('userPhoto')}` : null}
-        userId={userId}
-        setUserPhoto={(photo) => localStorage.setItem('userPhoto', photo ? photo.split(',')[1] : '')}
-      />
-      <main>
-        <HeroContent>
-          <Container maxWidth="sm">
-            <Typography component="h1" variant="h2" align="center" color="textPrimary" gutterBottom>
-              Dashboard
-            </Typography>
-            <Typography variant="h5" align="center" color="textSecondary" paragraph>
-              Aqui você pode visualizar seus projetos e gerenciar suas tarefas.
-            </Typography>
-            <HeroButtons>
-              <Grid container spacing={2} justifyContent="center">
-                <Grid item>
-                  <Button variant="contained" color="primary" onClick={handleOpenModal}>
-                    Adicionar Projeto
-                  </Button>
+      <Container
+        component="main"
+        maxWidth={false}
+        sx={{ width: '100%', padding: 0, paddingLeft: '0 !important', paddingRight: '0 !important', margin: 0 }}
+      >
+        <CssBaseline />
+        <Header
+          userName={localStorage.getItem('name')}
+          userPhoto={localStorage.getItem('userPhoto') ? `data:image/png;base64,${localStorage.getItem('userPhoto')}` : null}
+          userId={userId}
+          setUserPhoto={(photo) => localStorage.setItem('userPhoto', photo ? photo.split(',')[1] : '')}
+        />
+        <main>
+          <HeroContent>
+            <Container maxWidth="sm">
+              <Typography component="h1" variant="h2" align="center" color="textPrimary" gutterBottom>
+                Dashboard
+              </Typography>
+              <Typography variant="h5" align="center" color="textSecondary" paragraph>
+                Aqui você pode visualizar seus projetos e gerenciar suas tarefas.
+              </Typography>
+              <HeroButtons>
+                <Grid container spacing={2} justifyContent="center">
+                  <Grid item>
+                    <Button variant="contained" color="primary" onClick={handleOpenModal}>
+                      Adicionar Projeto
+                    </Button>
+                  </Grid>
+                  <Grid item>
+                    <Button variant="outlined" color="primary" onClick={handleViewTasks}>
+                      Ver Tarefas
+                    </Button>
+                  </Grid>
                 </Grid>
-                <Grid item>
-                  <Button variant="outlined" color="primary" onClick={handleViewTasks}>
-                    Ver Tarefas
-                  </Button>
-                </Grid>
-              </Grid>
-            </HeroButtons>
-          </Container>
-        </HeroContent>
-        <Container maxWidth="md">
-          <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-            <Typography variant="body1" sx={{ mr: 1 }}>
-              Filtrar meus projetos
-            </Typography>
-            <input
-              type="checkbox"
-              checked={showMyProjects}
-              onChange={handleCheckboxChange}
-            />
-          </Box>
-          <CardGrid>
-            <Grid container spacing={4}>
-              {currentProjects.map((project) => (
-                <Grid item key={project.id} xs={12} sm={6} md={4}>
-                  <Card sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-                    <CardContent sx={{ flexGrow: 1 }}>
-                      <Typography gutterBottom variant="h5" component="h2">
-                        {project.name}
-                      </Typography>
-                      <Typography>
-                        {project.description}
-                      </Typography>
-                      <Box sx={{ display: 'flex', alignItems: 'center', mt: 2 }}>
-                        {users[project.userId] ? (
-                          <>
-                            <Avatar
-                              src={users[project.userId]?.photo ? `data:image/png;base64,${users[project.userId].photo}` : undefined}
-                              sx={{ bgcolor: users[project.userId]?.photo ? undefined : blue[400], mr: 2 }}
-                            >
-                              {!users[project.userId]?.photo && users[project.userId]?.name.charAt(0).toUpperCase()}
-                            </Avatar>
-                            <Typography variant="body1">
-                              {users[project.userId]?.name}
-                            </Typography>
-                          </>
-                        ) : (
-                          <Typography variant="body1">Carregando usuário...</Typography>
-                        )}
-                      </Box>
-                    </CardContent>
-                    <CardActions>
-                      <Button size="small" color="primary" onClick={() => handleViewProject(project.id)}>
-                        Ver
-                      </Button>
-                    </CardActions>
-                  </Card>
-                </Grid>
-              ))}
-            </Grid>
-            <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
-              {pageNumbers.map(number => (
-                <Button
-                  key={number}
-                  onClick={() => handlePageChange(number)}
-                  variant={currentPage === number ? 'contained' : 'outlined'}
-                  color="primary"
-                  sx={{ m: 1 }}
-                >
-                  {number}
-                </Button>
-              ))}
+              </HeroButtons>
+            </Container>
+          </HeroContent>
+          <Container maxWidth="md">
+            <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+              <Typography variant="body1" sx={{ mr: 1 }}>
+                Filtrar meus projetos
+              </Typography>
+              <input
+                type="checkbox"
+                checked={showMyProjects}
+                onChange={handleCheckboxChange}
+              />
             </Box>
-          </CardGrid>
-        </Container>
-
+            <CardGrid>
+              <Grid container spacing={4}>
+                {currentProjects.map((project) => (
+                  <Grid item key={project.id} xs={12} sm={6} md={4}>
+                    <ProjectCard>
+                      <ProjectCardContent>
+                        <Typography gutterBottom variant="h5" component="h2">
+                          {project.name}
+                        </Typography>
+                        <Typography>
+                          {project.description}
+                        </Typography>
+                        <Box sx={{ display: 'flex', alignItems: 'center', mt: 2 }}>
+                          {users[project.userId] ? (
+                            <>
+                              <Avatar
+                                src={users[project.userId]?.photo ? `data:image/png;base64,${users[project.userId].photo}` : undefined}
+                                sx={{ bgcolor: users[project.userId]?.photo ? undefined : blue[400], mr: 2 }}
+                              >
+                                {!users[project.userId]?.photo && users[project.userId]?.name.charAt(0).toUpperCase()}
+                              </Avatar>
+                              <Typography variant="body1">
+                                {users[project.userId]?.name}
+                              </Typography>
+                            </>
+                          ) : (
+                            <Typography variant="body1">Carregando usuário...</Typography>
+                          )}
+                        </Box>
+                      </ProjectCardContent>
+                      <CardActions>
+                        <Button size="small" color="primary" onClick={() => handleViewProject(project.id)}>
+                          Ver
+                        </Button>
+                      </CardActions>
+                    </ProjectCard>
+                  </Grid>
+                ))}
+              </Grid>
+              <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
+                {pageNumbers.map(number => (
+                  <Button
+                    key={number}
+                    onClick={() => handlePageChange(number)}
+                    variant={currentPage === number ? 'contained' : 'outlined'}
+                    color="primary"
+                    sx={{ mx: 1 }}
+                  >
+                    {number}
+                  </Button>
+                ))}
+              </Box>
+            </CardGrid>
+          </Container>
+        </main>
         <Dialog open={openModal} onClose={handleCloseModal}>
           <DialogTitle>Criar Novo Projeto</DialogTitle>
           <DialogContent>
             <TextField
               autoFocus
               margin="dense"
+              id="name"
               label="Nome do Projeto"
               type="text"
               fullWidth
-              variant="outlined"
+              variant="standard"
               value={projectName}
               onChange={(e) => setProjectName(e.target.value)}
             />
             <TextField
               margin="dense"
+              id="description"
               label="Descrição"
               type="text"
               fullWidth
-              variant="outlined"
+              variant="standard"
               value={projectDescription}
               onChange={(e) => setProjectDescription(e.target.value)}
             />
@@ -274,7 +292,7 @@ const Dashboard: React.FC = () => {
             <Button onClick={handleCreateProject}>Cadastrar</Button>
           </DialogActions>
         </Dialog>
-      </main>
+      </Container>
     </React.Fragment>
   );
 };
