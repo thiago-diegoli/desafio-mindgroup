@@ -135,9 +135,15 @@ export const deleteProject = async (req: AuthenticatedRequest, res: Response) =>
       return res.status(403).json({ message: 'Você não tem permissão para deletar este projeto' });
     }
 
-    await prisma.project.delete({
-      where: { id: Number(id) },
-    });
+    // hotfix porque esqueci de deletar as tasks relacionadas junto do project
+    await prisma.$transaction([
+      prisma.task.deleteMany({
+        where: { projectId: Number(id) },
+      }),
+      prisma.project.delete({
+        where: { id: Number(id) },
+      }),
+    ]);
 
     res.status(200).json({ message: 'Projeto deletado com sucesso' });
   } catch (error) {
