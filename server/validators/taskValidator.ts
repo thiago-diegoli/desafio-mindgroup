@@ -7,7 +7,7 @@ export const taskValidator = [
     .optional(),
   check('status')
     .notEmpty().withMessage('O status da tarefa é obrigatório')
-    .isIn(['pendente', 'completed']).withMessage('O status deve ser pendente ou concluída'),
+    .isIn(['pending', 'completed']).withMessage('O status deve ser pendente ou concluída'),
   check('deliveryDate')
     .optional()
     .isISO8601().withMessage('A data de entrega deve ser uma data válida no formato ISO 8601'),

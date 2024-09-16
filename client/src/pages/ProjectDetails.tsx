@@ -67,7 +67,7 @@ const ProjectDetails: React.FC = () => {
     const fetchTasks = async () => {
       try {
         const tasksData = await getTaskByProject(Number(id)!);
-        setTasks(tasksData);
+        setTasks(Array.isArray(tasksData) ? tasksData : []);
       } catch (error) {
         console.error('Erro ao buscar tarefas do projeto:', error);
       }
@@ -167,7 +167,7 @@ const ProjectDetails: React.FC = () => {
     return <Typography variant="h6">Carregando projeto...</Typography>;
   }
 
-  const paginatedTasks = tasks.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
+  const paginatedTasks = Array.isArray(tasks) ? tasks.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage) : [];
 
   return (
     <Container

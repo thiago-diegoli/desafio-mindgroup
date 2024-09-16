@@ -1,9 +1,15 @@
 import { Request, Response } from 'express';
 import prisma from '../utils/database';
 import { AuthenticatedRequest } from '../types';
+import { validationResult } from 'express-validator';
 
 export const createTask = async (req: Request, res: Response) => {
   try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
+  
     const { name, description, deliveryDate, projectId, responsibleId } = req.body;
     const deliveryDateISO = new Date(deliveryDate).toISOString();
     
@@ -11,7 +17,7 @@ export const createTask = async (req: Request, res: Response) => {
       data: {
         name,
         description,
-        status: 'pendente',
+        status: 'pending',
         deliveryDate: deliveryDateISO,
         project: {
           connect: { id: projectId },
@@ -55,7 +61,7 @@ export const getTasksByProject = async (req: Request, res: Response) => {
     });
 
     if (tasks.length === 0) {
-      return res.status(404).json({ message: 'Nenhuma tarefa encontrada para este projeto.' });
+      return res.status(200).json({ message: 'Nenhuma tarefa encontrada para este projeto.' });
     }
 
     res.status(200).json(tasks);
@@ -77,7 +83,7 @@ export const getTasksByUser = async (req: Request, res: Response) => {
     });
 
     if (tasks.length === 0) {
-      return res.status(404).json({ message: 'Nenhuma tarefa encontrada para este usuário.' });
+      return res.status(200).json({ message: 'Nenhuma tarefa encontrada para este usuário.' });
     }
 
     res.status(200).json(tasks);
@@ -112,7 +118,7 @@ export const deleteTask = async (req: AuthenticatedRequest, res: Response) => {
     });
 
     if (task.project.userId !== userId) {
-      return res.status(403).json({ message: `Você não tem permissão para deletar esta tarefa. ${task.project.userId} ---- ${userId} `});
+      return res.status(403).json({ message: 'Você não tem permissão para deletar esta tarefa.'});
     }
 
     await prisma.task.delete({ where: { id: Number(taskId) } });

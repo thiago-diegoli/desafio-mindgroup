@@ -12,8 +12,11 @@ export const register = async (userData: {
     const response = await axios.post(`${API_URL}/logins/register`, userData);
     return response.data;
   } catch (error) {
-    if (axios.isAxiosError(error)) {
-      throw new Error(`Erro ao registrar o usuário: ${error.response?.data?.message || error.message}`);
+    if (axios.isAxiosError(error) && error.response) {
+      const errorMessages = error.response.data.errors
+        ? error.response.data.errors.map((err: { msg: string }) => err.msg).join('; ')
+        : error.message;
+      throw new Error(`Erro ao registrar o usuário: ${errorMessages}`);
     }
     throw new Error(`Erro ao registrar o usuário: ${error instanceof Error ? error.message : 'Erro desconhecido'}`);
   }
@@ -36,8 +39,11 @@ export const login = async (credentials: {
 
     return response.data;
   } catch (error) {
-    if (axios.isAxiosError(error)) {
-      throw new Error(`Erro ao fazer login: ${error.response?.data?.message || error.message}`);
+    if (axios.isAxiosError(error) && error.response) {
+      const errorMessages = error.response.data.errors
+        ? error.response.data.errors.map((err: { msg: string }) => err.msg).join('; ')
+        : error.message;
+      throw new Error(`Erro ao fazer login: ${errorMessages}`);
     }
     throw new Error(`Erro ao fazer login: ${error instanceof Error ? error.message : 'Erro desconhecido'}`);
   }
